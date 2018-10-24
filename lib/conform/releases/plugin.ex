@@ -14,10 +14,13 @@ defmodule Conform.ReleasePlugin do
   your release in production.
   """
 
+  require Logger
+
   # Used to check compatibility with certain features or changes
   defmacrop if_distillery(op, version, do: block, else: else_block)
     when op in [:lt, :gt, :eq] and is_binary(version) do
       quote location: :keep do
+        Application.ensure_started(:distillery)
         distillery_vsn =
           :distillery
           |> Application.spec
@@ -94,7 +97,7 @@ defmodule Conform.ReleasePlugin do
   def after_package(_release), do: nil
   def after_cleanup(_args), do: nil
 
-  defp debug(message), do: apply(Mix.Releases.Logger, :debug, ["conform: " <> message])
+  defp debug(message), do: Logger.debug(fn()-> "conform: " <> message end)
 
   defp add_archive(conform_overlays, release, schema_src) do
     # generate archive
